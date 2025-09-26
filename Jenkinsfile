@@ -22,8 +22,10 @@ pipeline {
     stage('Install dependencies (Node 16)'){
       steps {           // Run Node.js build inside the temp node16 container
         echo '=== [BUILD] Running npm install ==='
-        docker.image('node:16').inside {
-          sh 'npm insatll --save 2>&1 | tee build.log'
+        script {
+          docker.image('node:16').inside {
+            sh 'npm insatll --save 2>&1 | tee build.log'
+          }
         }
         archiveArtifacts artifacts: 'build.log', fingerprint: true
       }
@@ -32,8 +34,10 @@ pipeline {
     stage('Run tests (Node 16)'){
       steps {           // Run tests inside the temp node16 container
         echo '=== [TEST] Running npm test ==='
-        docker.image('node:16').inside {
-          sh 'npm test 2>&1 | tee test.log'
+        script {
+          docker.image('node:16').inside {
+            sh 'npm test 2>&1 | tee test.log'
+          }
         }
         archiveArtifacts artifacts: 'test.log', fingerprint: true
       }
@@ -42,11 +46,13 @@ pipeline {
     stage('Snyk dependency scan (fail on High/Critical)') {
       steps {           // Run Snyk in the temp container
         echo '=== [SECURITY SCAN] Running Snyk vulnerability test ==='
-        docker.image('node:16').inside {
-          withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
-            sh 'npm install -g snyk'
-            sh 'snyk ath $SNYK_TOKEN'
-            sh 'snyk test --severity-threshold=high | tee snyk.log'
+        script {
+          docker.image('node:16').inside {
+            withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
+              sh 'npm install -g snyk'
+              sh 'snyk ath $SNYK_TOKEN'
+              sh 'snyk test --severity-threshold=high | tee snyk.log'
+            }
           }
         }
         archiveArtifacts artifacts: 'snyk.log', fingerprint: true
