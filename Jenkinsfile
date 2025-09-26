@@ -49,9 +49,11 @@ pipeline {
         script {
           docker.image('node:16').inside {
             withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
-              sh 'npm install -g snyk'
-              sh 'snyk auth $SNYK_TOKEN'
-              sh 'snyk test --severity-threshold=high | tee snyk.log'
+              sh '''
+                npm install -g snyk
+                snyk auth "$SNYK_TOKEN"
+                snyk test --severity-threshold=high > snyk.log 2>&1
+              ''' 
             }
           }
         }
