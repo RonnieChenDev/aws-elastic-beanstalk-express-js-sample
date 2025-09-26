@@ -24,7 +24,7 @@ pipeline {
         echo '=== [BUILD] Running npm install ==='
         script {
           docker.image('node:16').inside {
-            sh 'npm insatll --save 2>&1 | tee build.log'
+            sh 'npm install --save 2>&1 | tee build.log'
           }
         }
         archiveArtifacts artifacts: 'build.log', fingerprint: true
@@ -50,7 +50,7 @@ pipeline {
           docker.image('node:16').inside {
             withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
               sh 'npm install -g snyk'
-              sh 'snyk ath $SNYK_TOKEN'
+              sh 'snyk auth $SNYK_TOKEN'
               sh 'snyk test --severity-threshold=high | tee snyk.log'
             }
           }
